@@ -1,0 +1,15 @@
+{
+  "name": "genver",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm -w @genver/api run dev",
+    "dev:web": "npm -w @genver/web run dev",
+    "build": "npm -w @genver/api run build && npm -w @genver/web run build && npm -w @genver/sdk run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "typescript": "^5.4.0"
+  }
+}

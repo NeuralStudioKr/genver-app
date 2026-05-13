@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  genver-api:
+    build:
+      context: ./packages/api
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgres://genver:genverpass@postgres:5432/genver
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: genver-dev-secret-key-change-in-production
+      PORT: "4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./packages/api/uploads:/app/uploads
+
+  genver-web:
+    build:
+      context: ./packages/web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://72.61.124.110:4000
+        NEXT_PUBLIC_WS_URL: ws://72.61.124.110:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - genver-api
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: genver
+      POSTGRES_USER: genver
+      POSTGRES_PASSWORD: genverpass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U genver"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pgdata:
+  redisdata:
